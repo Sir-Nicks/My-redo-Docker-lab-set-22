@@ -1,0 +1,76 @@
+Documentation on Docker week 10
+Objective
+The purpose of this assignment was to:
+
+Install Docker on an AWS EC2 instance.
+Build a Java application using Maven.
+Create a Dockerfile to package the application into a Docker image.
+Run a Docker container from the built image.
+
+Steps I Took
+1. Setting Up the AWS EC2 Instance
+I started by connecting to my AWS EC2 instance using SSH:
+
+ssh -i docker-key.pem ec2-user@52.213.55.239  
+Once connected, I checked the logs to ensure all necessary installations were completed:
+
+tail -f /var/log/cloud-init-output.log  
+2. Building the Java Application
+To begin, I confirmed that Maven was installed on the instance by checking its version:
+
+mvn --version  
+I then cloned the Java application repository provided by the developer:
+
+git clone https://github.com/CloudHight/usteam.git  
+After cloning the repository, I navigated into the project folder:
+
+cd usteam/  
+I built the application using Maven to generate a .war file:
+
+mvn clean package  
+Next, I moved into the target directory to locate the generated WAR file:
+
+cd target/  
+ls -al  
+3. Transferring Files Between EC2 Instances
+Since the WAR file needed to be transferred to another EC2 instance, I first set the correct permissions for the private key:
+
+sudo chmod 400 key  
+Then, I securely copied the WAR file to the destination EC2 instance:
+
+scp -i key usteam/target/spring-petclinic-2.4.2.war ec2-user@35.179.142.62  
+4. Creating a Docker Image
+After transferring the file, I logged into the destination EC2 instance:
+
+ssh -i key ec2-user@35.179.142.62  
+I created a Dockerfile to define how the application would be packaged into a Docker image:
+
+vi Dockerfile  
+The Dockerfile I wrote contained the following:
+dockerfile
+FROM openjdk:8-jre-slim  
+COPY . /app  
+WORKDIR /app  
+ENTRYPOINT ["java", "-jar", "spring-petclinic-2.4.2.war", "--server.port=8080"]  
+To ensure the file was correctly written, I viewed its contents using:
+
+cat Dockerfile  
+5. Building and Running the Docker Image
+Using the Dockerfile, I built a Docker image:
+
+docker build -t my-image .  
+After confirming that the image was created successfully:
+
+docker image ls  
+I proceeded to run a Docker container from the image:
+
+docker run -d --name my-contain -p 8080:8080 my-image  
+Finally, I verified that the container was running:
+
+docker ps -a  
+
+Through these steps, I successfully:
+
+Installed Docker on the EC2 instance.
+Built a Java application using Maven.
+Created a Docker image and ran the application inside a container.
